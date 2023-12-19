@@ -2,16 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var archiver = require("archiver");
-var path = require("path");
 var folderToGet = process.argv[2] || __dirname;
-var currentDate = new Date().toISOString().slice(0, 10);
-var zipFileName = "".concat(path.basename(folderToGet), ".zip");
+var currentDate = new Date().toISOString().slice(0, 19).replace(":", "").replace(":", "");
+var zipFileName = "archive_".concat(currentDate, ".zip");
 var output = fs.createWriteStream(zipFileName);
 var archive = archiver('zip', { zlib: { level: 9 } });
 output.on('close', function () {
     console.log(archive.pointer() + ' total bytes');
     console.log('archiver has been finalized and the output file descriptor has closed.');
-    fs.renameSync(zipFileName, "archive_".concat(currentDate, ".zip"));
+    console.log("Archive name is - ".concat(zipFileName));
 });
 archive.on('warning', function (err) {
     if (err.code === 'ENOENT') {
@@ -23,6 +22,9 @@ archive.on('warning', function (err) {
 });
 archive.on('error', function (err) {
     throw err;
+});
+archive.on("progress", function (progress) {
+    return console.log("[PROCESS PROGRESS]: ".concat(progress.entries.processed));
 });
 archive.pipe(output);
 archive.directory(folderToGet, false);
